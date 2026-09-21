@@ -30,7 +30,7 @@ jobs:
               {
                 "id": "github",
                 "username": "${{ github.actor }}",
-                "password": "${{ secrets.MOGUL_GITHUB_PERSONAL_ACCESS_TOKEN }}"
+                "password": "${{ env.GH_PAT }}"
               }
             ]
           repositories: |
