@@ -1,0 +1,30 @@
+name: Deploy
+
+env:
+  GH_PAT: ${{ secrets.MOGUL_GITHUB_PERSONAL_ACCESS_TOKEN }}
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    name: Build Container
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v3
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25.0.2'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+
+
+      - name: Deploy Package
+        env:
+          GH_USERNAME: ${{ github.actor }}
+          GH_TOKEN: ${{ env.GH_PAT }}
+        run: mvn deploy
