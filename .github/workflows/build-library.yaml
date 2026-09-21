@@ -43,7 +43,4 @@ jobs:
             ]
 
       - name: Deploy Package
-        env:
-          GH_USERNAME: ${{ github.actor }}
-          GH_TOKEN: ${{ env.GH_PAT }}
         run: mvn deploy
