@@ -22,6 +22,25 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: maven
 
+      - name: Generate Maven settings.xml
+        uses: s4u/maven-settings-action@v3
+        with:
+          servers: |
+            [
+              {
+                "id": "github",
+                "username": "${{ github.actor }}",
+                "password": "${{ secrets.MOGUL_GITHUB_PERSONAL_ACCESS_TOKEN }}"
+              }
+            ]
+          repositories: |
+            [
+              {
+                "id": "github",
+                "name": "Mogul Github Artifacts",
+                "url": "https://maven.pkg.github.com/bootiful-media-mogul/artifacts"
+              }
+            ]
 
       - name: Deploy Package
         env:
