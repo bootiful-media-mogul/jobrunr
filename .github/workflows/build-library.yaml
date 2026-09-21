@@ -23,7 +23,7 @@ jobs:
           cache: maven
 
       - name: Generate Maven settings.xml
-        uses: s4u/maven-settings-action@v3
+        uses: s4u/maven-settings-action@v4.0.0
         with:
           servers: |
             [
