@@ -18,10 +18,9 @@ jobs:
 
       - name: Setup Build Environment
         uses: bootiful-media-mogul/setup-jvm-build-env/.github/actions/setup@main
-        env:
-          GH_USER: ${{ secrets.GH_USER }}
-          GH_TOKEN: ${{ secrets.GH_PAT }}
-
+        with:
+          gh_token: ${{ secrets.GH_PAT }}
+          gh_user: ${{ secrets.GH_USER }}
 
       - name: Deploy Package
-        run:  mvn deploy
+        run: mvn deploy
