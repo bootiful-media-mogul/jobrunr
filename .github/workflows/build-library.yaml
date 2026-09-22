@@ -16,11 +16,9 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - name: Setup Build Environment
-        uses: bootiful-media-mogul/github-actions-setup-jvm-build-env/.github/actions/setup@main
+      - uses: bootiful-media-mogul/github-actions-setup-jvm-build-env/.github/actions/setup@main
         with:
           gh_token: ${{ env.GH_TOKEN }}
           gh_user: ${{ env.GH_USER }}
 
-      - name: Deploy Package
-        run: mvn deploy
+      - run: mvn deploy
