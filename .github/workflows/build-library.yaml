@@ -16,47 +16,12 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: '25.0.2'
-          distribution: 'graalvm'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          cache: maven
+      - name: Setup Build Environment
+        uses: bootiful-media-mogul/setup-jvm-build-env/.github/actions/setup@main
+        env:
+          GH_USER: ${{ secrets.GH_USER }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
-      - name: Generate Maven settings.xml
-        uses: s4u/maven-settings-action@v4.0.0
-        with:
-          servers: |
-            [
-              {
-                "id": "github",
-                "username": "${{ env.GH_USER }}",
-                "password": "${{ env.GH_TOKEN }}"
-              }
-            ]
-          repositories: |
-            [
-              {
-                "id": "github",
-                "name": "Mogul Github Artifacts",
-                "url": "https://maven.pkg.github.com/bootiful-media-mogul/artifacts"
-              }
-            ]
 
-#      - name: Maven settings for GitHub Packages
-#        run: |
-#          mkdir -p "$HOME/.m2"
-#          cat > "$HOME/.m2/settings.xml" <<'EOF'
-#          <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
-#            <servers>
-#              <server>
-#                <id>github</id>
-#                <username>${env.GH_USER}</username>
-#                <password>${env.GH_TOKEN}</password>
-#              </server>
-#            </servers>
-#          </settings>
-#          EOF
-#
       - name: Deploy Package
-        run:  mvn -s "$HOME/.m2/settings.xml" deploy
+        run:  mvn deploy
