@@ -2,6 +2,7 @@ name: Deploy
 
 env:
   GH_PAT: ${{ secrets.MOGUL_GITHUB_PERSONAL_ACCESS_TOKEN }}
+  GH_USER: joshlong
 
 on:
   push:
@@ -22,25 +23,40 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: maven
 
-      - name: Generate Maven settings.xml
-        uses: s4u/maven-settings-action@v4.0.0
-        with:
-          servers: |
-            [
-              {
-                "id": "github",
-                "username": "${{ github.actor }}",
-                "password": "${{ env.GH_PAT }}"
-              }
-            ]
-          repositories: |
-            [
-              {
-                "id": "github",
-                "name": "Mogul Github Artifacts",
-                "url": "https://maven.pkg.github.com/bootiful-media-mogul/artifacts"
-              }
-            ]
+      - name: Maven settings for GitHub Packages
+        run: |
+          mkdir -p "$HOME/.m2"
+          cat > "$HOME/.m2/settings.xml" <<'EOF'
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${env.GH_USER}</username>
+                <password>${env.GH_PAT}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+#      - name: Generate Maven settings.xml
+#        uses: s4u/maven-settings-action@v4.0.0
+#        with:
+#          servers: |
+#            [
+#              {
+#                "id": "github",
+#                "username": "${{ github.actor }}",
+#                "password": "${{ env.GH_PAT }}"
+#              }
+#            ]
+#          repositories: |
+#            [
+#              {
+#                "id": "github",
+#                "name": "Mogul Github Artifacts",
+#                "url": "https://maven.pkg.github.com/bootiful-media-mogul/artifacts"
+#              }
+#            ]
 
       - name: Deploy Package
-        run: mvn deploy
+        run: cat "$HOME/.m2/settings.xml" &&  mvn -s "$HOME/.m2/settings.xml" deploy
