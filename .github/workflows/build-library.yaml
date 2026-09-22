@@ -58,5 +58,5 @@ jobs:
 #          </settings>
 #          EOF
 #
-#      - name: Deploy Package
-#        run:  mvn -s "$HOME/.m2/settings.xml" deploy
+      - name: Deploy Package
+        run:  mvn -s "$HOME/.m2/settings.xml" deploy
