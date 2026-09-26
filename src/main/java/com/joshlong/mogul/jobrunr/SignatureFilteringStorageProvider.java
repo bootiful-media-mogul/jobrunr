@@ -6,6 +6,9 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.JobTable;
 import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
@@ -14,6 +17,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.stream.Collectors.joining;
@@ -24,6 +28,8 @@ class SignatureFilteringStorageProvider extends PostgresStorageProvider {
 
 	private JobMapper jobMapper;
 
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	SignatureFilteringStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions,
 			Collection<JobRequestHandler<?>> handlers) {
 		super(dataSource, tablePrefix, databaseOptions);
@@ -31,8 +37,11 @@ class SignatureFilteringStorageProvider extends PostgresStorageProvider {
 				+ "nothing would be an expensive way to poll a database");
 		var jobSignatures = jobSignatures(handlers).stream().map(s -> "'" + s + "'").collect(joining(" , "));
 
+		this.log.debug("jobSignatures: {}", jobSignatures);
+
 		this.selectJobsToProcessStatement = " jobAsJson from jobrunr_jobs where state = :state and jobSignature in ("
 				+ jobSignatures + ") ";
+
 	}
 
 	private String jobSignature(Class<?> handler, Class<?> request) {
@@ -44,13 +53,17 @@ class SignatureFilteringStorageProvider extends PostgresStorageProvider {
 		for (var handler : handlers) {
 			var handlerClass = AopProxyUtils.ultimateTargetClass(handler);
 			var requestClass = ResolvableType.forClass(JobRequestHandler.class, handlerClass).getGeneric(0).resolve();
-			Assert.state(requestClass != null && JobRequest.class.isAssignableFrom(requestClass),
-					() -> "could not work out which " + JobRequest.class.getName() + " the handler ["
-							+ handlerClass.getName() + "] takes. it must bind the type variable on "
-							+ JobRequestHandler.class.getName() + " to a concrete type");
-			signatures.add(jobSignature(handlerClass, requestClass));
+			this.validate(JobRequestHandler.class, handlerClass);
+			this.validate(JobRequest.class, Objects.requireNonNull(requestClass));
+			var jobSignature = this.jobSignature(handlerClass, requestClass);
+			signatures.add(jobSignature);
 		}
 		return signatures;
+	}
+
+	private void validate(@NonNull Class<?> target, @NonNull Class<?> assignableFrom) {
+		Assert.state(target.isAssignableFrom(assignableFrom),
+				() -> assignableFrom.getName() + " is not an instance of  " + target.getName());
 	}
 
 	@Override
