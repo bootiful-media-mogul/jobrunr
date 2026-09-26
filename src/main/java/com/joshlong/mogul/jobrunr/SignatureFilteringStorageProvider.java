@@ -33,12 +33,9 @@ class SignatureFilteringStorageProvider extends PostgresStorageProvider {
 	SignatureFilteringStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions,
 			Collection<JobRequestHandler<?>> handlers) {
 		super(dataSource, tablePrefix, databaseOptions);
-		Assert.notEmpty(handlers, "there must be at least one job request handler: a node that is allowed to run "
-				+ "nothing would be an expensive way to poll a database");
+		Assert.notEmpty(handlers, "there must be at least one job request handler.");
 		var jobSignatures = jobSignatures(handlers).stream().map(s -> "'" + s + "'").collect(joining(" , "));
-
 		this.log.debug("jobSignatures: {}", jobSignatures);
-
 		this.selectJobsToProcessStatement = " jobAsJson from jobrunr_jobs where state = :state and jobSignature in ("
 				+ jobSignatures + ") ";
 
