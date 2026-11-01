@@ -5,7 +5,12 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.spring.autoconfigure.JobRunrProperties;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
+import org.jobrunr.storage.sql.postgres.PostgresStorageProvider;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
+import org.jspecify.annotations.Nullable;
+import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -13,6 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ImportRuntimeHints;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -24,6 +30,7 @@ import java.util.List;
 @ConditionalOnBean(DataSource.class)
 @ConditionalOnProperty(prefix = "jobrunr.database", name = "type", havingValue = "sql", matchIfMissing = true)
 @AutoConfiguration(after = DataSourceAutoConfiguration.class, before = JobRunrSqlStorageAutoConfiguration.class)
+@ImportRuntimeHints(JobRunrAutoConfiguration.Hints.class)
 class JobRunrAutoConfiguration {
 
 	@ConditionalOnMissingBean
@@ -37,6 +44,15 @@ class JobRunrAutoConfiguration {
 				handlers);
 		storageProvider.setJobMapper(jobMapper);
 		return storageProvider;
+	}
+
+	static class Hints implements RuntimeHintsRegistrar {
+
+		@Override
+		public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+			hints.reflection().registerType(PostgresStorageProvider.class, MemberCategory.values());
+		}
+
 	}
 
 }
